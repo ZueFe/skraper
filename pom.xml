@@ -23,6 +23,7 @@
         <spring.boot.version>2.2.7.RELEASE</spring.boot.version>
         <telegram-bots.version>4.7</telegram-bots.version>
         <sokomishalov-commons.version>1.1.14</sokomishalov-commons.version>
+        <springfox.version>3.0.0-SNAPSHOT</springfox.version>
         <logback.version>1.2.3</logback.version>
     </properties>
 
