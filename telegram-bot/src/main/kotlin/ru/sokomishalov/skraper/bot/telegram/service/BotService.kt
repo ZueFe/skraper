@@ -46,21 +46,27 @@ class BotService(
     private suspend fun reply(message: Message?) {
         logInfo { "Received message ${message?.text}" }
 
-        // 0. extract url
+        // 0. say hello
+        if (message?.text.orEmpty() == "/start") {
+            send(SendMessage(message?.chatId, "Hello!"))
+            return
+        }
+
+        // 1. extract url
         val url = extractUrlFromMessage(message?.text.orEmpty())
         if (url == null) {
             send(SendMessage(message?.chatId, "URL not found in the message"))
             return
         }
 
-        // 1. find suitable skraper
+        // 2. find suitable skraper
         val supportedSkraper: Skraper? = knownSkrapers.find { it.supports(url.orEmpty()) }
         if (supportedSkraper == null) {
             send(SendMessage(message?.chatId, "Unsupported URL"))
             return
         }
 
-        // 2. try to either scrape posts and download attachments or just download attachment
+        // 3. try to either scrape posts and download attachments or just download attachment
         val posts = runCatching { supportedSkraper.getPosts(url.path) }.getOrElse { emptyList() }
         when {
             posts.isNotEmpty() -> {
