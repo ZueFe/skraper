@@ -41,7 +41,7 @@ import java.io.File.separator
  * @param media item to download
  * @param destDir destination file or directory for media
  * @param filename custom destination file name without extension
- * @param ffmpegRunner custom ffmpeg runner (for downloading m3u8 files)
+ * @param ffmpegRunner custom ffmpeg runner (for converting m3u8 and webm files)
  */
 suspend fun Skraper.Companion.download(
         media: Media,

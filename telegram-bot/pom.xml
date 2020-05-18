@@ -18,6 +18,7 @@
     </properties>
 
     <dependencies>
+        <!-- COMPILE -->
         <dependency>
             <groupId>ru.sokomishalov.skraper</groupId>
             <artifactId>skrapers</artifactId>
@@ -83,6 +84,16 @@
             <artifactId>telegrambots-spring-boot-starter</artifactId>
             <version>${telegram-bots.version}</version>
         </dependency>
+
+        <!-- OPTIONAL -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-configuration-processor</artifactId>
+            <version>${spring.boot.version}</version>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- TEST -->
     </dependencies>
 
     <build>
@@ -92,6 +103,7 @@
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring.boot.version}</version>
                 <executions>
                     <execution>
                         <goals>

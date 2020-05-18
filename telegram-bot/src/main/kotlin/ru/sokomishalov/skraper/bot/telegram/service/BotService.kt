@@ -23,13 +23,17 @@ import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
 import ru.sokomishalov.commons.core.common.unit
 import ru.sokomishalov.commons.core.log.Loggable
+import ru.sokomishalov.skraper.Skraper
 import ru.sokomishalov.skraper.bot.telegram.autoconfigure.BotProperties
 
 /**
  * @author sokomishalov
  */
 @Service
-class BotService(private val botProperties: BotProperties) : TelegramLongPollingBot() {
+class BotService(
+        private val botProperties: BotProperties,
+        private val knownSkrapers: List<Skraper>
+) : TelegramLongPollingBot() {
 
     companion object : Loggable
 
@@ -39,5 +43,7 @@ class BotService(private val botProperties: BotProperties) : TelegramLongPolling
 
     private suspend fun reply(message: Message?) {
         logInfo { "Received message ${message?.text}" }
+        val supports = knownSkrapers.any { it.supports(message?.text.orEmpty()) }
+        // TODO
     }
 }
