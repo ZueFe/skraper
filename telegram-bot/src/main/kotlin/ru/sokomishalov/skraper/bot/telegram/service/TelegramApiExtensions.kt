@@ -1,3 +1,8 @@
+@file:Suppress(
+        "NOTHING_TO_INLINE",
+        "EXPERIMENTAL_API_USAGE"
+)
+
 package ru.sokomishalov.skraper.bot.telegram.service
 
 import kotlinx.coroutines.suspendCancellableCoroutine
@@ -12,9 +17,8 @@ import kotlin.coroutines.resumeWithException
 /**
  * @author sokomishalov
  */
-internal fun initTelegramApi() = ApiContextInitializer.init()
+internal inline fun initTelegramApi() = ApiContextInitializer.init()
 
-@Suppress("EXPERIMENTAL_API_USAGE")
 internal suspend fun <T : Serializable> AbsSender.send(method: BotApiMethod<T>): T {
     return suspendCancellableCoroutine { cont ->
         executeAsync(method, object : SentCallback<T> {
