@@ -101,7 +101,7 @@ private suspend fun List<Skraper>.lookForDirectMediaLinkRecursively(media: Media
 
         // otherwise
         else -> {
-            find { it.canResolve(media) }
+            find { it.supports(media.url) }
                     ?.resolve(media)
                     ?.run {
                         when {

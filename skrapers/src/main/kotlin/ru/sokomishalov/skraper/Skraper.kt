@@ -36,6 +36,12 @@ interface Skraper {
     val client: SkraperClient get() = DefaultBlockingSkraperClient
 
     /**
+     * @param url potential provider relative url
+     * @return true if such skraper supports this url
+     */
+    suspend fun supports(url: URLString): Boolean = url.host.removePrefix("www.") in baseUrl.host
+
+    /**
      * @return provider info
      */
     suspend fun getProviderInfo(): ProviderInfo? = ProviderInfo(
@@ -55,12 +61,6 @@ interface Skraper {
      * @return list of posts
      */
     suspend fun getPosts(path: String, limit: Int = DEFAULT_POSTS_LIMIT): List<Post>
-
-    /**
-     * @param media with provider relative url
-     * @return true if such skraper can resolve relative url
-     */
-    suspend fun canResolve(media: Media): Boolean = media.url.host.removePrefix("www.") in baseUrl.host
 
     /**
      * @param media with provider relative url

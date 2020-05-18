@@ -74,9 +74,9 @@ class YoutubeSkraper @JvmOverloads constructor(
         }
     }
 
-    override suspend fun canResolve(media: Media): Boolean {
+    override suspend fun supports(url: URLString): Boolean {
         return arrayOf("youtube.com", "youtu.be")
-                .any { media.url.host.removePrefix("www.") in it }
+                .any { url.host.removePrefix("www.") in it }
     }
 
     override suspend fun resolve(media: Media): Media {
