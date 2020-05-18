@@ -26,6 +26,11 @@ import ru.sokomishalov.skraper.model.*
 interface Skraper {
 
     /**
+     * added for some static extensions
+     */
+    companion object
+
+    /**
      * @return provider base url
      */
     val baseUrl: URLString
@@ -67,6 +72,4 @@ interface Skraper {
      * @return media with direct url
      */
     suspend fun resolve(media: Media): Media
-
-    companion object
 }
