@@ -6,8 +6,9 @@ Skraper
 [![](https://jitpack.io/v/sokomishalov/skraper.svg)](https://jitpack.io/#sokomishalov/skraper)
 
 # Overview
-Cli tool and kotlin library which allows scraping posts with media and other meta info from various sources without 
-any authorization or full page rendering. Based on Kotlin/JVM coroutines and JSoup.
+Kotlin/JVM library and cli tool which allows scraping and downloading posts, attachments, 
+other meta from more than 10 sources without any authorization or full page rendering. 
+Based on coroutines and JSoup.
 
 Repository contains:
 - [Cli tool](#cli-tool)
