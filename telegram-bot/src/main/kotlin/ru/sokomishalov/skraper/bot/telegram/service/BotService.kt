@@ -67,7 +67,7 @@ class BotService(
         }
 
         // 3. try to either scrape posts and download attachments or just download attachment
-        val posts = runCatching { supportedSkraper.getPosts("/${url.path}") }.getOrElse { emptyList() }
+        val posts = runCatching { supportedSkraper.getPosts(url.path) }.getOrElse { emptyList() }
         when {
             posts.isNotEmpty() -> {
                 send(SendMessage(message?.chatId, "Found ${posts.size} posts for url $url"))
