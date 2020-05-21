@@ -14,7 +14,8 @@
  * limitations under the License.
  */
 @file:Suppress(
-        "BlockingMethodInNonBlockingContext"
+        "BlockingMethodInNonBlockingContext",
+        "RemoveExplicitTypeArguments"
 )
 
 package ru.sokomishalov.skraper.bot.telegram.service
@@ -25,13 +26,12 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.springframework.stereotype.Service
 import org.telegram.telegrambots.bots.TelegramLongPollingBot
-import org.telegram.telegrambots.meta.api.methods.send.SendAudio
+import org.telegram.telegrambots.meta.api.methods.send.SendMediaGroup
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage
-import org.telegram.telegrambots.meta.api.methods.send.SendPhoto
-import org.telegram.telegrambots.meta.api.methods.send.SendVideo
-import org.telegram.telegrambots.meta.api.objects.InputFile
 import org.telegram.telegrambots.meta.api.objects.Message
 import org.telegram.telegrambots.meta.api.objects.Update
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaPhoto
+import org.telegram.telegrambots.meta.api.objects.media.InputMediaVideo
 import ru.sokomishalov.commons.core.common.unit
 import ru.sokomishalov.commons.core.log.Loggable
 import ru.sokomishalov.skraper.Skraper
@@ -39,6 +39,7 @@ import ru.sokomishalov.skraper.bot.telegram.autoconfigure.BotProperties
 import ru.sokomishalov.skraper.download
 import ru.sokomishalov.skraper.internal.net.path
 import ru.sokomishalov.skraper.model.*
+import ru.sokomishalov.skraper.resolve
 import java.io.File
 import java.nio.file.Files.createTempDirectory
 import kotlin.text.RegexOption.*
@@ -80,38 +81,53 @@ class BotService(
         // 3. try to either scrape posts and download attachments or just download attachment
         val posts = runCatching { supportedSkraper.getPosts(url.path) }.getOrElse { emptyList() }
         val latestPost = posts.firstOrNull()
+        val tmpDir = createTempDirectory("skraper-bot").toFile()
 
-        createTempDirectory("skraper-bot")
-                .toFile()
-                .also { tmpDir ->
-                    when {
-                        latestPost != null -> {
-                            latestPost.media.forEach { media ->
-                                val file = Skraper.download(
+        runCatching {
+            when {
+                latestPost != null -> {
+                    latestPost
+                            .media
+                            .map { media ->
+                                media to Skraper.download(
                                         media = media,
                                         destDir = tmpDir,
                                         skrapers = knownSkrapers
                                 )
-                                sendMedia(message, media, file)
                             }
-                        }
-                        else -> {
-                            listOf(Video(url), Image(url), Audio(url))
-                                    .forEach { media ->
-                                        runCatching {
-                                            val file = Skraper.download(
-                                                    media = media,
-                                                    destDir = tmpDir,
-                                                    skrapers = knownSkrapers
-                                            )
-                                            sendMedia(message, media, file)
-                                        }
-                                    }
-
-                        }
-                    }
+                            .let { items ->
+                                when {
+                                    items.isNotEmpty() -> sendMedia(message, items)
+                                    else -> saySorry(message)
+                                }
+                            }
                 }
-                .deleteRecursively()
+
+                else -> {
+                    listOf(Video(url), Audio(url), Image(url))
+                            .map { media ->
+                                media to Skraper.resolve(
+                                        media = media,
+                                        skrapers = knownSkrapers
+                                )
+                            }
+                            .firstOrNull { (original, resolved) -> original.url != resolved.url }
+                            ?.let { (_, resolved) ->
+                                val file = Skraper.download(
+                                        media = resolved,
+                                        destDir = tmpDir,
+                                        skrapers = knownSkrapers
+                                )
+                                sendMedia(message, listOf(resolved to file))
+                            }
+                            ?: saySorry(message)
+
+                }
+            }
+        }.onFailure { saySorry(message) }
+
+        // 4. release
+        tmpDir.deleteRecursively()
     }
 
     private fun extractUrlFromMessage(text: String): URLString? {
@@ -122,34 +138,37 @@ class BotService(
                 ?.trim()
     }
 
-    private suspend fun sendText(message: Message, msg: String) {
-        send(SendMessage().apply {
+    private suspend fun sendText(message: Message, msg: String): Unit = withContext(IO) {
+        execute(SendMessage().apply {
             chatId = message.chatId?.toString()
             text = msg
             replyToMessageId = message.messageId
         })
     }
 
-    private suspend fun sendMedia(message: Message, media: Media, file: File) = withContext(IO) {
-        when (media) {
-            is Image -> execute(SendPhoto().apply {
-                chatId = message.chatId?.toString()
-                replyToMessageId = message.messageId
-                photo = InputFile(file, file.name)
-            })
+    private suspend fun sendMedia(message: Message, attachments: List<Pair<Media, File>>, caption: String = ""): Unit = withContext<Unit>(IO) {
+        execute(SendMediaGroup().apply {
+            replyToMessageId = message.messageId
+            chatId = message.chatId?.toString()
+            media = attachments.map { (media, file) ->
+                when (media) {
+                    is Image -> InputMediaPhoto().apply {
+                        setMedia(file, file.nameWithoutExtension)
+                    }
+                    is Video -> InputMediaVideo().apply {
+                        setMedia(file, file.nameWithoutExtension)
+                    }
 
-            is Video -> execute(SendVideo().apply {
-                chatId = message.chatId?.toString()
-                replyToMessageId = message.messageId
-                video = InputFile(file, file.name)
-            })
+                    is Audio -> InputMediaPhoto().apply {
+                        setMedia(file, file.nameWithoutExtension)
+                    }
+                }
+            }
+        })
+    }
 
-            is Audio -> execute(SendAudio().apply {
-                chatId = message.chatId?.toString()
-                replyToMessageId = message.messageId
-                audio = InputFile(file, file.name)
-            })
-        }
+    private suspend fun saySorry(message: Message) {
+        sendText(message, "Unable to download this media, sorry :(")
     }
 
     companion object : Loggable {

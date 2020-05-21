@@ -17,7 +17,7 @@ package ru.sokomishalov.skraper.bot.telegram
 
 import org.springframework.boot.autoconfigure.SpringBootApplication
 import org.springframework.boot.runApplication
-import ru.sokomishalov.skraper.bot.telegram.service.initTelegramApi
+import org.telegram.telegrambots.ApiContextInitializer
 
 /**
  * @author sokomishalov
@@ -26,6 +26,6 @@ import ru.sokomishalov.skraper.bot.telegram.service.initTelegramApi
 class TelegramBotApplication
 
 fun main(args: Array<String>) {
-    initTelegramApi()
+    ApiContextInitializer.init()
     runApplication<TelegramBotApplication>(*args)
 }

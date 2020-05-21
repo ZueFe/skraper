@@ -20,6 +20,7 @@ package ru.sokomishalov.skraper.internal.ffmpeg
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
+import java.io.InputStream
 import java.time.Duration
 
 
@@ -36,18 +37,23 @@ class FfmpegCliRunner(
         }
     }
 
-    override suspend fun run(cmd: String, timeout: Duration): Int {
-        val process = Runtime
-                .getRuntime()
-                .exec("ffmpeg $cmd")
+    override suspend fun run(
+            cmd: String,
+            timeout: Duration,
+            stdin: (InputStream) -> Unit
+    ): Int {
+        val process = Runtime.getRuntime().exec("ffmpeg $cmd")
 
         withTimeoutOrNull(timeout.toMillis()) {
-            while (process.isAlive) {
-                delay(processLivenessCheckInterval.toMillis())
-            }
+            stdin(process.inputStream)
+            process.await()
         }
 
         return runCatching { process.exitValue() }.getOrElse { -1 }
+    }
+
+    private suspend fun Process.await() {
+        while (isAlive) delay(processLivenessCheckInterval.toMillis())
     }
 
     private fun checkFfmpegExistence() {

@@ -15,6 +15,7 @@
  */
 package ru.sokomishalov.skraper.internal.ffmpeg
 
+import java.io.InputStream
 import java.time.Duration
 
 
@@ -23,6 +24,10 @@ import java.time.Duration
  */
 interface FfmpegRunner {
 
-    suspend fun run(cmd: String, timeout: Duration = Duration.ofHours(1)): Int
+    suspend fun run(
+            cmd: String,
+            timeout: Duration = Duration.ofHours(1),
+            stdin: (InputStream) -> Unit = {}
+    ): Int
 
 }
