@@ -124,7 +124,10 @@ class BotService(
 
                 }
             }
-        }.onFailure { saySorry(message) }
+        }.onFailure {
+            logError(it)
+            saySorry(message)
+        }
 
         // 4. release
         tmpDir.deleteRecursively()
