@@ -1,0 +1,1 @@
+web: java $JAVA_OPTS -Dserver.port=$PORT -Dskraper.bot.username=$TELEGRAM_BOT_USERNAME -Dskraper.bot.token=$TELEGRAM_BOT_TOKEN -jar ./telegram-bot/target/project-name-1.0.jar
