@@ -138,7 +138,7 @@ class BotService(
                 ?.trim()
     }
 
-    private suspend fun sendText(message: Message, msg: String): Unit = withContext(IO) {
+    private suspend fun sendText(message: Message, msg: String): Unit = withContext<Unit>(IO) {
         execute(SendMessage().apply {
             chatId = message.chatId?.toString()
             text = msg
