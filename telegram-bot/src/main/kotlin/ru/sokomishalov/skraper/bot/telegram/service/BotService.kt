@@ -146,7 +146,7 @@ class BotService(
         })
     }
 
-    private suspend fun sendMedia(message: Message, attachments: List<Pair<Media, File>>, caption: String = ""): Unit = withContext<Unit>(IO) {
+    private suspend fun sendMedia(message: Message, attachments: List<Pair<Media, File>>): Unit = withContext<Unit>(IO) {
         execute(SendMediaGroup().apply {
             replyToMessageId = message.messageId
             chatId = message.chatId?.toString()
